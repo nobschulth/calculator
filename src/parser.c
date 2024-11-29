@@ -53,8 +53,50 @@ Type get_token_type(char* str, size_t* to_size) {
 
 
 Node* compile_ast(Token* tokens, size_t len) {
-    for (int i = 0; i < len; i++) {
-        
-    }        
+    Node* node;
+    size_t lowest_i = get_lowest_op(tokens, len);
+    node = create_node_next(NULL, NULL, NULL);
+    switch (tokens[lowest_i].type) {
+        case OPERATOR:
+            switch (tokens[lowest_i].value[0]) {
+                 case '+':
+                    node->value.next.func = op_add;                                  
+                    break;       
+                case '-':
+                     node->value.next.func = op_sub;                               
+                    break;
+            }
+            break;
+    }    
 }
 
+size_t get_lowest_op(Token* tokens, size_t len) {
+    size_t lowest_i = 0;
+    Token* lowest = &tokens[0];
+    for (size_t i = 0; i < len; i++) {
+        if (get_token_level(&tokens[i]) < get_token_level(lowest)) {
+            lowest = &tokens[i];
+            lowest_i = i;
+        }
+    }
+    return lowest_i;
+    
+}
+
+int get_token_level(Token* token) {
+    switch(token->type) {
+        case OPERATOR:
+            switch(token->value[0]) {
+                case '+':
+                case '-':
+                    return 1;
+                    break;
+            }
+            return 2;
+            break;
+        case VALUE:
+            return 3;
+            break;
+    }
+    return -1;
+}
