@@ -12,8 +12,7 @@ typedef enum Type {
     VALUE,
     OPEN_BR,
     CLOSE_BR,
-    END,
-    UNKNOWN
+    END
 } Type;
 
 typedef struct Token {

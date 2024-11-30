@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "node.h"
 #include "math_funcs.h"
+#include "util.h"
 
 Token* tokenize_str(char* str, size_t* return_len) {
     Token* tokens = NULL;
@@ -14,6 +15,10 @@ Token* tokenize_str(char* str, size_t* return_len) {
     size_t str_pos = 0;
     //exit condition is \\0
     for (;;) {
+        if (str[str_pos] == ' ') {
+            str_pos += 1;
+            continue;
+        }
         //if not operator or not bracket: check if number, if not check if function
         size_t to_size = 0;
         Type ty = get_token_type(str + str_pos, &to_size);
@@ -21,7 +26,6 @@ Token* tokenize_str(char* str, size_t* return_len) {
         if (ty == END) {
             break;
         }
-        
         char* val = str + str_pos - 1 - to_size;
         if (tokens == NULL) {
             tokens = malloc(sizeof(Token));
@@ -50,7 +54,7 @@ Token* tokenize_str(char* str, size_t* return_len) {
 }
 
 Type get_token_type(char* str, size_t* to_size) {
-    if (str[0] == '+' || str[0] == '-' || str[0] == '/' || str[0] == '*') {
+    if (str[0] == '+' || str[0] == '-' || str[0] == '/' || str[0] == '*' || str[0] == '^') {
         return OPERATOR;
     }
     if (isdigit(str[0]) || str[0] == '.') {
@@ -63,7 +67,10 @@ Type get_token_type(char* str, size_t* to_size) {
     if (str[0] == '\0') {
         return END;
     }
-    return UNKNOWN;
+    printf("Syntax Error: unknown symbol: ");
+    print_invalid_str(str, (*to_size) + 1);
+    printf("\n");
+    exit(1);   
 }
 
 
@@ -80,7 +87,18 @@ Node* compile_ast(Token* tokens, size_t len) {
                 case '-':
                     node = create_node_next(NULL, NULL, op_sub);                                 
                     break;
+                case '*':
+                    node = create_node_next(NULL, NULL, op_mul);                                 
+                    break;
+                case '/':
+                    node = create_node_next(NULL, NULL, op_div);                                 
+                    break;
+                case '^':
+                    node = create_node_next(NULL, NULL, op_pow);                                 
+                    break;
+        
             }
+            
             node->value.next.l_node = compile_ast(tokens, highest_i);
             node->value.next.r_node = compile_ast(tokens + highest_i + 1, len - highest_i - 1);
             break;
@@ -111,10 +129,13 @@ int get_token_level(Token* token) {
             switch(token->value[0]) {
                 case '+':
                 case '-':
+                    return 3;
+                case '*':
+                case '/':
+                    return 2;
+                case '^':
                     return 1;
-                    break;
             }
-            return 2;
             break;
         case VALUE:
             return 0;
