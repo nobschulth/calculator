@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -26,7 +27,30 @@ Token* tokenize_str(char* str, size_t* return_len) {
         if (ty == END) {
             break;
         }
+
         char* val = str + str_pos - 1 - to_size;
+        //check if value is negative
+        if (ty == OPERATOR && val[0] == '-') {
+            size_t d = 0;
+            bool start = val == str;
+            
+            bool prev_op = false;
+            if (!start) {
+                prev_op = get_token_type(val - 1, &d) == OPERATOR;
+            }
+            bool next_val = false;
+            if (val[1] != '\0'){
+                next_val = get_token_type(val + 1, &d) == VALUE; 
+            }
+            //case is true
+            if ((next_val && prev_op) || start) {
+                to_size = d + 1;
+                str_pos += d + 1;
+                ty = VALUE;
+            }
+            
+        }
+
         if (tokens == NULL) {
             tokens = malloc(sizeof(Token));
             if (tokens == NULL) {

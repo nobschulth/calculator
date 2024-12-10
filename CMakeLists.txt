@@ -5,3 +5,4 @@ project(Calculator)
 file(GLOB SOURCES "src/*.c")
 
 add_executable(Calculator ${SOURCES})
+target_link_libraries(Calculator m)
